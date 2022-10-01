@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <script type="text/javascript" src="{% static 'flake_app/jquery-3.6.0.min.js' %}"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.css">
+
+    <script type = "text/javascript">
+        $(document).ready(function(){
+            $('#devices').DataTable();
+        });
+    </script>
+<body>
+    <link rel="stylesheet" type="text/css" href="{% static 'flake_app/base.css' %}">
+    <div class = "sidebar">
+        <div class = "login">
+            {% if user.is_authenticated %}
+                <p>Logged in as: {{user.username}}</p>
+                <a href = "{% url 'logout' %}">Log out</a>
+            {% else %}
+                <a href = "{% url 'login' %}">Log in</a>
+            {% endif %}
+        </div>
+        <ul>
+            <li><a href = "{% url 'flake_app:flake-index' %}">Flake Index</a></li>
+            <li><a href = "{% url 'flake_app:device-index' %}">Devices</a></li>
+        
+            {% if user.is_authenticated %}
+                {% if user.current_device %}
+                    <li>Current Device: <a href = "{% url 'flake_app:device-detail' user.current_device.pk%}">{{user.current_device.name}}</a></li>
+                {% else %}
+                    <li>Current Device: None</li>
+                {% endif %}
+            {% endif %}
+        </ul>
+    </div>
+    {% if messages %}
+    <div class = "messagesholder">
+        <ul class = "messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+                <span class="messageclose" onclick="this.parentElement.style.display='none';">&times;</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <div class = "content">
+        {% block content %}
+        {% endblock content %}
+    </div>
+</body>
+</html>

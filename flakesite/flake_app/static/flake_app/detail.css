@@ -1,0 +1,122 @@
+.imagecontent{
+    display: none;
+}
+
+
+.tab {
+    display: inline-table;
+}
+
+.tab ul{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+table {
+    border-collapse:collapse;
+    display: inline-table;
+    min-width: 400px;
+    vertical-align: top;
+    font-size: 14px;
+}
+
+thead {
+    background-color: lightseagreen;
+    text-align: left;
+    font-family: sans-serif;
+    color:white
+}
+
+th, td{
+    padding: 12px 15px;
+}
+
+tbody tr{
+    border-bottom: thin solid darkslategray;
+}
+
+.proptable tbody tr{
+    border-bottom: none;
+}
+
+.buttontable tr{
+    border-bottom: none;
+}
+
+.imagetable tbody td{
+    min-width: 300px;
+    min-height: 300px;
+}
+
+.imagetable thead td{
+    min-width: 300px;
+    min-height: 300px;
+}
+
+.buttonlink a{
+    display: block;
+    padding: 8px 16px;
+    text-decoration: none;
+    background-color: rgb(233, 233, 233);
+    text-align: center;
+    font-family: sans-serif;
+    color: black;
+}
+
+.headerlink a{
+    display: block;
+    padding: 8px 16px;
+    text-decoration: none;
+    background-color: rgb(233, 233, 233);
+    text-align: center;
+    font-family: sans-serif;
+    max-width: 10%;
+    color: black;
+}
+
+.headerlink a:hover{
+    background-color: lightgray;
+    color:white
+}
+
+.buttonlink a:hover{
+    background-color: lightgray;
+    color: white;
+}
+
+.description {
+    background-color: lightseagreen;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 14px;
+    color:white;
+    border: none;
+    outline: none;
+    padding: 4px 8px;
+    vertical-align: top;
+    max-width: 10%;
+}
+
+button{
+    background-color: rgb(233, 233, 233);
+    text-align: left;
+    font-family: sans-serif;
+    font-size: 14px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 15px;
+    vertical-align: top;
+    min-width: 300px;
+}
+
+button:active { 
+    background-color: lightseagreen;
+    color: white;
+}
+
+button.selected {
+    background-color: lightgray;
+    border-right: 5px solid lightseagreen;
+}

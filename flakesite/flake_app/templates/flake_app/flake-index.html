@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% load static %}
+<html>
+{% block content %}
+    <script>
+    </script>
+    <script type="text/javascript" src="{% static 'flake_app/flake-index.js' %}"></script>
+    <label><input type = "checkbox" class = "filter-owned" value = "{{user.username}}">Show unowned flakes</label>
+    <h1>Graphene</h1>
+    <button class = "show-children" type = "button" value = "graphene">Expand All</button>
+    <button class = "hide-children" type = "button" value = "graphene">Collapse All</button>
+    <label><input type = "checkbox" class = "filter-used" value = "graphene">Show in use</label>
+    <table id = "graphene" class = "table table-striped">
+        <thead class = "alert-success">
+            <tr>
+                <th>Name</th>
+                <th>Box</th>
+                <th>Chip</th>
+                <th>Flake Number</th>
+                <th>Device</th>
+                <th>Uploaded</th>
+                <th>Image</th>
+                <th>Owner</th>
+                {% for label, _ in graphene_model.get_displayed_fields.items %}
+                    <th>{{ label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for graphene in graphenes %}
+            <tr>
+                <td> <a href="{{ graphene.get_absolute_url }}">{{ graphene.name }}</a></td>
+                <td>{{ graphene.box }}</td>
+                <td>{{ graphene.chip }}</td>
+                <td>{{ graphene.num }}</td>
+                <td>{{ graphene.device }}</td>
+                <td>{{ graphene.uploaded_at }}</td>
+                <td>{% url 'flake_app:flake-image' graphene.pk %}</td>
+                {% if graphene.owner %}
+                    <td>{{ graphene.owner.username}}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+                {% for _, prop in graphene.get_displayed_fields.items %}
+                    <td>{{ prop }}</td>
+                {% endfor %}
+            </tr>
+           {% endfor %}
+        </tbody>
+    </table>
+    <h1>Hexagonal Boron Nitride</h1>
+    <button class = "show-children" type = "button" value = "hBN">Expand All</button>
+    <button class = "hide-children" type = "button" value = "hBN">Collapse All</button>
+    <label><input type = "checkbox" class = "filter-used" value = "hBN">Show in use</label>
+    <table id = "hBN" class = "table table-striped">
+        <thead class = "alert-success">
+            <tr>
+                <th>Name</th>
+                <th>Box</th>
+                <th>Chip</th>
+                <th>Flake Number</th>
+                <th>Device</th>
+                <th>Uploaded</th>
+                <th>Image</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hbn in hbns %}
+            <tr>
+                <td> <a href="{{ hbn.get_absolute_url }}">{{ hbn.name }}</a></td>
+                <td>{{ hbn.box }}</td>
+                <td>{{ hbn.chip }}</td>
+                <td>{{ hbn.num }}</td>
+                <td>{{ hbn.device }}</td>
+                <td>{{ hbn.uploaded_at }}</td>
+                <td>{% url 'flake_app:flake-image' hbn.pk %}</td>
+                {% if hbn.owner %}
+                    <td>{{ hbn.owner.username}}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+            </tr>
+           {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+</html>

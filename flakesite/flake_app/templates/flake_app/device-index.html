@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+<html>
+{% block content %}
+    <h1>Devices</h1>
+    <table id = "devices" class = "table table-bordered">
+        <thead class = "alert-success">
+            <tr>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Flakes</th>
+                <th>Uploaded</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in object_list %}
+            <tr>
+                <td> <a href="{{ device.get_absolute_url }}">{{ device.name }}</a></td>
+                <td>{{ device.owner }}</td>
+                <td>{{ device.flakes.count }}</td>
+                <td>Today</td>
+            </tr>
+           {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+    <a href = "{% url 'flake_app:device-create' %}">Add device</a> 
+{% endblock %}
+</html>

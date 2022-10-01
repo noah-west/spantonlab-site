@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+{% load rest_framework %}
+<html>
+
+<h1>{{ flake.name }}</h1>
+
+<form action = "{% url 'flake_app:flake-edit' pk=flake.pk %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% render_form serializer %}
+    <input type="submit" value="Save changes">
+</form>

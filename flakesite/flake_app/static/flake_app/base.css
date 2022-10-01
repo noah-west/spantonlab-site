@@ -1,0 +1,78 @@
+.sidebar{
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-family: sans-serif;
+    width: 160px;
+}
+
+.login{
+    background-color: seagreen;
+    color: white;
+    padding: 3px 5px;
+}
+
+.sidebar ul{
+    list-style-type: none;
+    background-color: rgb(233, 233, 233);
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar li a{
+    display: block;
+    padding: 8px 16px;
+    text-decoration: none;
+    text-align: center;
+    color: black
+}
+
+.sidebar li a:hover{
+    background-color: lightgray;
+    color: white;
+}
+
+.content{
+    margin-left: 160px;
+}
+
+thead{
+    background-color: lightseagreen;
+    color: white;
+    font-family: sans-serif;
+}
+
+.messagesholder {
+    margin: auto;
+    width: 50%;
+    top: 0;
+}
+
+.messages {
+    z-index: 100;
+    position: fixed;
+    opacity: 0.9;
+    list-style-type: none;
+    font-family: sans-serif;
+}
+
+.messages li {
+    text-align: center;
+    padding: 20px;
+}
+
+.warning {
+    background-color: red;
+}
+
+.messageclose {
+    margin: 0px;
+    margin-left: 15px;
+    font-size: 25px;
+    color:white;
+    float:right; 
+}
+
+.messageclose:hover {
+    color:black;
+}
