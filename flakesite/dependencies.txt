@@ -25,4 +25,5 @@ six==1.16.0
 sqlparse==0.4.3
 stone==3.3.1
 urllib3==1.26.12
+whitenoise==6.2.0
 XlsxWriter==3.0.3
