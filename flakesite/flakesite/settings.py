@@ -11,7 +11,7 @@ try:
         flake_config = json.load(f)
 except FileNotFoundError:
     print("Unable to locate flake configuration file!")
-flake_config = {}
+    flake_config = {}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
