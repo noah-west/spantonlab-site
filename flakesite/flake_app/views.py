@@ -27,7 +27,7 @@ from pptx import Presentation
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.util import Inches
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageEnhance
 import cv2 as cv
 import numpy as np
 
@@ -71,8 +71,35 @@ def flake_image(request, pk):
         response = HttpResponse(content_type = "image/jpg")
         flake_image.save(response, "JPEG")
         return response
-
     response = HttpResponse(flake.flake_image, content_type = "image/jpg")
+    return response
+
+def gamma_flake_image(request, pk):
+
+    # Gamma correction + brightness adjustment to make step edges more visible.
+    flake = get_object_or_404(Flake, pk = pk)
+
+    flake_image = np.array(Image.open(flake.flake_image))
+
+    R, G, B = cv.split(flake_image)
+
+    gamma_R = np.mean(R) / 25
+    gamma_G = np.mean(G) / 16 # Don't question the magic number.
+    gamma_B = np.mean(B) / 13
+
+    LUT_R = np.empty((1, 256), np.uint8)
+    LUT_G = np.empty((1, 256), np.uint8)
+    LUT_B = np.empty((1, 256), np.uint8)
+    for i in range(256):
+        LUT_R[0, i] = np.clip(pow(i / 255.0, gamma_R) * 255.0, 0, 255)
+        LUT_G[0, i] = np.clip(pow(i / 255.0, gamma_G) * 255.0, 0, 255)
+        LUT_B[0, i] = np.clip(pow(i / 255.0, gamma_B) * 255.0, 0, 255)
+
+    gamma_corrected = Image.fromarray(cv.cvtColor(cv.merge((cv.LUT(R, LUT_R), cv.LUT(G, LUT_G), cv.LUT(B, LUT_B))), cv.COLOR_RGB2GRAY))
+    gamma_corrected = ImageEnhance.Contrast(gamma_corrected).enhance(1.2)
+    response = HttpResponse(content_type = "image/jpg")
+
+    gamma_corrected.save(response, "JPEG")
     return response
 
 class FlakeDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.DetailView):

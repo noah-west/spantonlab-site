@@ -46,8 +46,8 @@ class BinaryField(serializers.Field):
 # Due to a bug with Django REST framework, the field does not pass on its allow_empty_file argument
 # to the parent Django Form ImageField it uses for verification. This fixes that issue.
 
-# TODO: At some point this should be fixed in the Django REST framework itself.
-# Due to the additional PIL image verification, this is too complicated to do a simple fix.
+# TODO: At some point this should be fixed in the Django REST framework itself. Due to the additional
+# PIL image verification, this is too complicated to perform a simple fix.
 
 class AllowEmptyImageField(serializers.ImageField):
     
@@ -128,7 +128,7 @@ class GrapheneSerializer(FlakeSerializer):
 class hBNSerializer(FlakeSerializer):
     class Meta:
         model = hBN
-        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image']
+        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image', 'thin', 'thick', 'capsule', 'noise']
         validators = [
                 UniqueTogetherOrOwnerValidator(
                     queryset = Flake.objects.all(),

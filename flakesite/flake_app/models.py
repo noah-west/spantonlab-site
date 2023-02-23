@@ -55,7 +55,7 @@ class Flake(RulesModelMixin, PolymorphicModel, metaclass = PolymorphicRulesMetac
 
     name = models.CharField(max_length = 255, blank = True, null = True)    # Readable name for the flake. By default [box]_[chip]_[num] 
 
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.SET_NULL, null = True, related_name = 'flakes') # Owner of the flake, who has control over its use. Normally, whoever scanned it.
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.SET_NULL, null = True, related_name = 'flakes') # Owner of the flake, who has control over its use. Nominally, whoever scanned it.
 
     map_url       = models.URLField(blank = True, null = True, max_length = 500)
     flake_url     = models.URLField(blank = True, null = True, max_length = 500)
@@ -70,6 +70,8 @@ class Flake(RulesModelMixin, PolymorphicModel, metaclass = PolymorphicRulesMetac
     uploaded_at = models.DateTimeField(auto_now_add = True)
 
     bounds_threshold = (212, 255)
+
+    has_gamma = False
 
     class Meta():
         rules_permissions = {
@@ -122,13 +124,20 @@ class Graphene(Flake):
         return displayed
 
 class hBN(Flake):
+    
+    thin = models.BigIntegerField(default = 0)
+    thick = models.BigIntegerField(default = 0)
+    capsule = models.BigIntegerField(default = 0) # TODO: This name doesn't really make sense.
+    noise = models.BigIntegerField(default = 0)
+
     batch = models.CharField(max_length = 12, null = True, blank = True) # The hBN batch this exfoliation was sourced from
 
-
     bounds_threshold = (212, 255)
+    has_gamma = True
+
     def get_displayed_fields(self):
         displayed = super().get_displayed_fields()
-        displayed.update({'batch' : self.batch})
+        displayed.update({'Capsule area' : self.capsule, 'Few Layer' : self.thin, 'Thick Layer' : self.thick, 'batch' : self.batch})
         return displayed
 
 # Comment on a particular flake
