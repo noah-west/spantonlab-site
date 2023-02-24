@@ -63,6 +63,9 @@
                 <th>Flake</th>
                 <th>Trained</th>
                 <th>Map</th>
+                {% if flake.has_gamma %}
+                    <th>Gamma corrected</th>
+                {% endif %}
             </tr>
         </thead>
         <tr>
@@ -82,6 +85,13 @@
             </div>
             <div id = "Map" class = "imagecontent">
                 <td><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "300" height = "300"></td>
+            <div id = "Gamma" class = "imagecontent">
+                {% if flake.has_gamma %}
+                    <td><img src = "{% url 'flake_app:flake-gamma' flake.pk %}" width = "300" height = "300"></td>
+                {% else %}
+                    <td>No image found</td>
+                {% endif %}
+            </div>
         </tr>
     </table>
     

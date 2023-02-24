@@ -5,95 +5,69 @@
 {% block content %}
     <link rel="stylesheet" type="text/css" href="{% static 'flake_app/detail.css' %}">
     <script src="{% static 'flake_app/detail.js' %}"></script>
-    <h1>{{flake.name}}</h1>
+    <header><h1>{{device.name}}</h1></header>
+    {{device.desc}}
+    <a href = "{% url 'flake_app:flake-edit' device.pk %}">Edit</a>
+    
     <div class = "headerlink">
-        {% if user.current_device %}
-            {% if flake not in user.current_device.flakes.all %}
-                <form id = "add_to_device" method = "post">
-                    {% csrf_token %}
-                    <input type = "hidden" name = "add-to-device" value = "1" />
-                    <a href = "#", onclick="document.forms[0].submit(); return false;">Add to current device</a>
-                </form>
-            {% endif %}
-        {% endif %}
-        <a href = "{% url 'flake_app:flake-edit' flake.pk %}">Edit</a>
+        <form id = "setcurrent" method = "post">
+            {% csrf_token %}
+            <input type = "hidden" name = "set-current" value = "1" />
+            <a href = "#", onclick="document.forms[0].submit(); return false;">Set current device</a>
+        </form>
     </div>
     <hr>
-    <table class = "proptable">
-        <thead>
-            <tr>
-                <th>Box</th>
-                <th>Chip</th>
-                <th>Flake Number</th>
-                <th>Uploaded</th>
-                <th>Owner</th>
-                <th>Device</th>
-            </tr>
-        </thead>
-        <tr>
-            <td>{{flake.box}}</td>
-            <td>{{flake.chip}}</td>
-            <td>{{flake.num}}</td>
-            <td>{{flake.uploaded_at}}</td>
-            <td>{{flake.owner}}</td>
-            <td>
-                {% if flake.device %}
-                    <a href="{% url 'flake_app:device-detail' flake.device.pk %}">{{flake.device.name}}</a>
-                {% else %}
-                    Unused
-                {% endif %}
-            </td>
-        </tr>
-        <thead>
-            <tr>
-                {% for prop_name, _ in flake.get_displayed_fields.items %}
-                    <th>{{ prop_name }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tr>
-            {% for _, prop in flake.get_displayed_fields.items %}
-                <td>{{ prop }}</td>
+
+    <div class = "tab">
+        <ul>
+            {% for flake in device.flakes.all %}
+                <li><button onclick="openImage(event, '{{flake.name}}');" class = "imagelink">{{flake.name}}</button></li>
             {% endfor %}
-        </tr>
-    </table>
-    <table class = "imagetable">
-        <thead>
-            <tr>
-                <th>Flake</th>
-                <th>Trained</th>
-                <th>Map</th>
-                {% if flake.has_gamma %}
-                    <th>Gamma corrected</th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tr>
-            <div id = "Flake" class = "imagecontent">
-                {% if flake.flake_image %}
-                    <td><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "300" height = "300"></td>
-                {% else %}
-                    <td>No image found</td>
-                {% endif %}
-            </div>
-            <div id = "Trained" class = "imagecontent">
-                {% if flake.trained_image %}
-                    <td><img src = "{{flake.trained_image.url}}" width = "300" height = "300"></td>
-                {% else %}
-                    <td>No image found</td>
-                {% endif %}
-            </div>
-            <div id = "Map" class = "imagecontent">
-                <td><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "300" height = "300"></td>
-            <div id = "Gamma" class = "imagecontent">
-                {% if flake.has_gamma %}
-                    <td><img src = "{% url 'flake_app:flake-gamma' flake.pk %}" width = "300" height = "300"></td>
-                {% else %}
-                    <td>No image found</td>
-                {% endif %}
-            </div>
-        </tr>
-    </table>
-    
+        </ul>
+    </div>
+        {% if device.flakes.all|length %}
+            {% for flake in device.flakes.all %}
+                <div class = "imagecontent" id = "{{flake.name}}">
+                    <table class = "imagetable">
+                        <thead>
+                            <tr>
+                                <th>Flake</th>
+                                <th>Trained</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <div id = "Flake" class = "imagecontent">
+                                    {% if flake.flake_image %}
+                                        <td><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "300" height = "300"></td>
+                                    {% else %}
+                                        <td>No image found</td>
+                                    {% endif %}
+                                </div>
+                                <div id = "Trained" class = "imagecontent">
+                                    {% if flake.trained_image %}
+                                        <td><img src = "{{flake.trained_image.url}}" width = "300" height = "300"></td>
+                                    {% else %}
+                                        <td>No image found</td>
+                                    {% endif %}
+                                </div>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class = "buttonlink">
+                        <a href = "{{ flake.get_absolute_url }}">Details</a>
+                        <form id = "removeflake" method = "post">
+                            {% csrf_token %}
+                            <input type = "hidden" name = "remove-flake" value = "{{flake.pk}}" />
+                            <a href = "#", onclick="if(confirm('Are you sure you want to remove {{flake.name}} from the device?')){closest('form').submit()};">Remove from device</a>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            No flakes have been added to the device.
+        {% endif %}
+        <a href = "{% url 'flake_app:device-download' device.pk %}">Download as powerpoint</a>
+
 {% endblock %}
 </html>
