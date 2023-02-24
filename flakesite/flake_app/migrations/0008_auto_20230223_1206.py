@@ -4,11 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
-    dependencies = [
-        ('flake_app', '0007_auto_20220825_1456'),
-    ]
-
+ 
     operations = [
         migrations.AddField(
             model_name='hbn',
