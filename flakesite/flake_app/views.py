@@ -215,6 +215,18 @@ class DeviceDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.Deta
             
         return redirect(reverse('flake_app:device-detail', args = (pk,)))
 
+class DeviceEdit(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.UpdateView):
+    model = Device
+    queryset = Device.objects.all()
+    fields = ['name', 'desc']
+    template_name = 'flake_app/device-edit.html'
+
+    def form_valid(self, form):
+        device_form = form.save(commit = False)
+        device_form.owner = self.request.user
+        device_form.save()
+        return redirect(reverse('flake_app:device-detail', args = (self.object.id,)))
+
 class DeviceCreate(LoginRequiredMixin, generic.CreateView):
     model = Device
     fields = ['name', 'desc']
@@ -256,7 +268,7 @@ def device_powerpoint(request, pk):
     
         textBox = slide_shapes.add_textbox(0, 0, Inches(5), Inches(1))
         tf = textBox.text_frame
-        tf.text = flake_instance.name
+        tf.text = 'Name: {}\nBox: {}\nChip: {}'.format(flake_instance.name, flake_instance.box, flake_instance.chip)
 
 
         with io.BytesIO() as output:

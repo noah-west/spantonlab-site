@@ -7,8 +7,7 @@
     <script src="{% static 'flake_app/detail.js' %}"></script>
     <header><h1>{{device.name}}</h1></header>
     {{device.desc}}
-    <a href = "{% url 'flake_app:flake-edit' device.pk %}">Edit</a>
-    
+    <a href = "{% url 'flake_app:device-edit' device.pk %}">Edit</a>
     <div class = "headerlink">
         <form id = "setcurrent" method = "post">
             {% csrf_token %}
@@ -17,7 +16,6 @@
         </form>
     </div>
     <hr>
-
     <div class = "tab">
         <ul>
             {% for flake in device.flakes.all %}
@@ -68,6 +66,5 @@
             No flakes have been added to the device.
         {% endif %}
         <a href = "{% url 'flake_app:device-download' device.pk %}">Download as powerpoint</a>
-
 {% endblock %}
 </html>

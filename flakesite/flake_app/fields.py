@@ -2,6 +2,7 @@ from django.db.models import ImageField
 from django.db.models.fields.files import ImageFieldFile
 from django.forms import FileField
 
+from .storage import SharedLinkDropBoxStorage
 from io import BytesIO
 
 # This field references a seperate field which contains a permanent shared url for an image
@@ -10,10 +11,12 @@ from io import BytesIO
 
 class DropboxImageFieldFile(ImageFieldFile):
     def url(self):
+        if not isinstance(self.storage, SharedLinkDropBoxStorage):
+            return super().url
         if not hasattr(self.field, 'dropbox_url_field') or not self.field.dropbox_url_field:
             # The corresponding field does not have a dropbox_url_field set, so use the normal
             # behavior.
-            return super().url()
+            return super().url
         self._require_file()
         initial_url = getattr(self.instance, self.field.dropbox_url_field)
         dropbox_url = self.storage.url(self.name, initial_url)

@@ -30,7 +30,7 @@
         <tbody>
             {% for graphene in graphenes %}
             <tr>
-                <td> <a href="{{ graphene.get_absolute_url }}">{{ graphene.name }}</a></td>
+                <td> <a href="{{ graphene.get_absolute_url }}" target = "_blank", rel="noopener noreferrer">{{ graphene.name }}</a></td>
                 <td>{{ graphene.box }}</td>
                 <td>{{ graphene.chip }}</td>
                 <td>{{ graphene.num }}</td>
@@ -69,7 +69,7 @@
         <tbody>
             {% for hbn in hbns %}
             <tr>
-                <td> <a href="{{ hbn.get_absolute_url }}">{{ hbn.name }}</a></td>
+                <td> <a href="{{ hbn.get_absolute_url }}", target = "_blank", rel="noopener noreferrer">{{ hbn.name }}</a></td>
                 <td>{{ hbn.box }}</td>
                 <td>{{ hbn.chip }}</td>
                 <td>{{ hbn.num }}</td>

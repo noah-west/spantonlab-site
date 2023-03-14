@@ -71,29 +71,26 @@
         <tr>
             <div id = "Flake" class = "imagecontent">
                 {% if flake.flake_image %}
-                    <td><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "300" height = "300"></td>
+                <td><a href = "{% url 'flake_app:flake-image' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "300" height = "300"></a></td>
                 {% else %}
                     <td>No image found</td>
                 {% endif %}
             </div>
             <div id = "Trained" class = "imagecontent">
                 {% if flake.trained_image %}
-                    <td><img src = "{{flake.trained_image.url}}" width = "300" height = "300"></td>
+                    <td><a href = "{{flake.trained_image.url}}", target = '_blank'><img src = "{{flake.trained_image.url}}" width = "300" height = "300"></a></td>
                 {% else %}
                     <td>No image found</td>
                 {% endif %}
             </div>
             <div id = "Map" class = "imagecontent">
-                <td><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "300" height = "300"></td>
+                <td><a href = "{% url 'flake_app:map-image' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "300" height = "300"></a></td>
+            {% if flake.has_gamma%}
             <div id = "Gamma" class = "imagecontent">
-                {% if flake.has_gamma %}
-                    <td><img src = "{% url 'flake_app:flake-gamma' flake.pk %}" width = "300" height = "300"></td>
-                {% else %}
-                    <td>No image found</td>
-                {% endif %}
+                <td><a href = "{% url 'flake_app:flake-gamma' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:flake-gamma' flake.pk %}" width = "300" height = "300"></a></td>
             </div>
+            {% endif %}
         </tr>
     </table>
-    
 {% endblock %}
 </html>

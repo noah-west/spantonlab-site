@@ -1,6 +1,7 @@
 from requests import delete
 from storages.backends.dropbox import DropBoxStorage
 from storages.backends.dropbox import _DEFAULT_TIMEOUT, _DEFAULT_MODE
+from django.apps import apps
 from django.core.exceptions import SuspiciousFileOperation, ImproperlyConfigured
 from django.utils._os import safe_join
 
@@ -8,8 +9,6 @@ from dropbox import Dropbox
 from dropbox.sharing import SharedLinkSettings, LinkAudience
 from dropbox.exceptions import ApiError
 from storages.utils import setting
-
-from .models import Flake
 
 import time
 # Override to allow the use of permanent shared links for stored files, where applicable.
@@ -45,7 +44,8 @@ class SharedLinkDropBoxStorage(DropBoxStorage):
         
         # TODO: This is terrible.
         if name.endswith("map.jpeg"):
-            for model_instance in Flake.objects.filter(map_image__endswith = name.lstrip(self.root_path)):
+            FlakeModel = apps.get_model(app_label='flake_app', model_name='Flake')
+            for model_instance in FlakeModel.objects.filter(map_image__endswith = name.lstrip(self.root_path)):
                 if not model_instance.deleting:
                     # Another Flake references this map image, so don't delete it.
                     return

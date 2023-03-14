@@ -17,4 +17,5 @@ urlpatterns = [
     path('device/<int:pk>', views.DeviceDetail.as_view(), name = 'device-detail'),
     path('device/<int:pk>/download', views.device_powerpoint, name = 'device-download'),
     path('device/create', views.DeviceCreate.as_view(), name = 'device-create'),
+    path('device/<int:pk>/edit', views.DeviceEdit.as_view(), name = 'device-edit')
 ]
