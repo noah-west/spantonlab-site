@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 {% extends 'base.html' %}
 {% load static %}
 <html>
@@ -12,59 +11,102 @@
         <form id = "setcurrent" method = "post">
             {% csrf_token %}
             <input type = "hidden" name = "set-current" value = "1" />
-            <a href = "#", onclick="document.forms[0].submit(); return false;">Set current device</a>
+            <a href = "#", onclick="document.forms[0].submit(); return false;">Set as current device</a>
         </form>
+    </div>
+    <div class = "headerlink">
+        <a href = "{% url 'flake_app:device-download' device.pk %}">Download Powerpoint</a>
     </div>
     <hr>
     <div class = "tab">
         <ul>
+            <li><div class = "tabtext">Flakes</div></li>
             {% for flake in device.flakes.all %}
                 <li><button onclick="openImage(event, '{{flake.name}}');" class = "imagelink">{{flake.name}}</button></li>
             {% endfor %}
         </ul>
     </div>
-        {% if device.flakes.all|length %}
-            {% for flake in device.flakes.all %}
-                <div class = "imagecontent" id = "{{flake.name}}">
-                    <table class = "imagetable">
-                        <thead>
-                            <tr>
-                                <th>Flake</th>
-                                <th>Trained</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <div id = "Flake" class = "imagecontent">
-                                    {% if flake.flake_image %}
-                                        <td><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "300" height = "300"></td>
-                                    {% else %}
-                                        <td>No image found</td>
-                                    {% endif %}
-                                </div>
-                                <div id = "Trained" class = "imagecontent">
-                                    {% if flake.trained_image %}
-                                        <td><img src = "{{flake.trained_image.url}}" width = "300" height = "300"></td>
-                                    {% else %}
-                                        <td>No image found</td>
-                                    {% endif %}
-                                </div>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class = "buttonlink">
-                        <a href = "{{ flake.get_absolute_url }}">Details</a>
-                        <form id = "removeflake" method = "post">
-                            {% csrf_token %}
-                            <input type = "hidden" name = "remove-flake" value = "{{flake.pk}}" />
-                            <a href = "#", onclick="if(confirm('Are you sure you want to remove {{flake.name}} from the device?')){closest('form').submit()};">Remove from device</a>
-                        </form>
-                    </div>
+    {% if device.flakes.all|length %}
+        {% for flake in device.flakes.all %}
+            <div class = "imagecontent" id = "{{flake.name}}">
+                <table class = "imagetable">
+                    <thead>
+                        <tr>
+                            <th>Flake Image</th>
+                            <th>Map Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <div id = "Flake" class = "imagecontent">
+                                {% if flake.flake_image %}
+                                    <td><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "400" height = "400"></td>
+                                {% else %}
+                                    <td>No image found</td>
+                                {% endif %}
+                            </div>
+                            <div id = "Map" class = "imagecontent">
+                                {% if flake.map_image %}
+                                    <td><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "400" height = "400"></td>
+                                {% else %}
+                                    <td>No image found</td>
+                                {% endif %}
+                            </div>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class = "proptable">
+                    <thead>
+                        <tr>
+                            <th>Box</th>
+                            <th>Chip</th>
+                            <th>Flake Number</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>{{flake.box}}</td>
+                        <td>{{flake.chip}}</td>
+                        <td>{{flake.num}}</td>
+                    </tr>
+                </table>
+                <div class = "buttonlink">
+                    <a href = "{{ flake.get_absolute_url }}">Details</a>
+                    <form id = "removeflake" method = "post">
+                        {% csrf_token %}
+                        <input type = "hidden" name = "remove-flake" value = "{{flake.pk}}" />
+                        <a href = "#", onclick="if(confirm('Are you sure you want to remove {{flake.name}} from the device?')){closest('form').submit()};">Remove from device</a>
+                    </form>
                 </div>
-            {% endfor %}
-        {% else %}
-            No flakes have been added to the device.
-        {% endif %}
-        <a href = "{% url 'flake_app:device-download' device.pk %}">Download as powerpoint</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        No flakes have been added to the device.
+    {% endif %}
+<hr>
+<header><h1>Comments</h1></header>
+<div class = "comments_section">
+    {% for comment, indent in sorted_comments.items %}
+        <div class = "comment", style = "margin-left: {{indent}}px;">
+            <div style = "padding: 10px;"> 
+                <p class = "font-weight-bold"> 
+                    {{ comment.user }}
+                    <span class = "text-muted font-weight-normal"> 
+                    {{ comment.created}}
+                    </span>
+                </p>
+                {{ comment.body | linebreaks }}
+            </div>
+            <button onclick="openCommentForm(event, 'comment_div_{{comment.pk}}');">Reply</button>
+            <div class = "comment_form", id = "comment_div_{{comment.pk}}">
+                <form method = "POST" id = "comment_{{comment.pk}}", action = "">
+                    <textarea id = "comment_text_{{comment.pk}}", name="body", rows = "4"></textarea>
+                    <input type = "hidden" name = "parent_comment", value = "{{comment.pk}}">
+                    {% csrf_token %}
+                    <input type = "submit" name = "post-comment" value = "Submit"><button type = "button" onclick="closeCommentForm(event, 'comment_div_{{comment.pk}}');">Cancel</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+</div>
 {% endblock %}
 </html>

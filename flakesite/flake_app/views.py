@@ -20,8 +20,9 @@ from rules.contrib.views import AutoPermissionRequiredMixin
 
 from .permissions import IsOwnerOrReadOnly
 from .serializers import FlakePolymorphicSerializer
-from .models import Flake, Graphene, hBN, Device
-from .utils import get_contour
+from .models import Flake, Graphene, hBN, Device, Comment
+from .utils import get_contour, lookup_tables
+from .forms import CommentForm
 
 from pptx import Presentation
 from pptx.shapes.freeform import FreeformBuilder
@@ -44,7 +45,6 @@ class FlakeIndex(LoginRequiredMixin, generic.ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         all_graphenes = Graphene.objects.all()
 
         context['graphenes'] = all_graphenes
@@ -58,6 +58,20 @@ class FlakeIndex(LoginRequiredMixin, generic.ListView):
 
 def flake_image(request, pk):
     flake = get_object_or_404(Flake, pk = pk)
+    if flake.flake_image.name.endswith('.dsx'):
+        # Conversion of DSX files to JPEG.
+        flake_image = Image.open(flake.flake_image)
+        flake_image = flake_image.convert("RGB")
+    
+        if flake.contour:
+            flake_arr = np.array(flake_image)
+            contour = get_contour(flake.contour)
+            cv.drawContours(flake_arr, [contour], 0, (255, 0, 0), 1)
+            flake_image = Image.fromarray(flake_arr)
+
+        response = HttpResponse(content_type = "image/jpg")
+        flake_image.save(response, "JPEG")
+        return response
 
     if flake.contour:
         # Convert to OpenCV formatted image
@@ -71,36 +85,32 @@ def flake_image(request, pk):
         response = HttpResponse(content_type = "image/jpg")
         flake_image.save(response, "JPEG")
         return response
+
     response = HttpResponse(flake.flake_image, content_type = "image/jpg")
     return response
 
-def gamma_flake_image(request, pk):
 
-    # Gamma correction + brightness adjustment to make step edges more visible.
+def LUT_flake_image(request, pk):
     flake = get_object_or_404(Flake, pk = pk)
-
     flake_image = np.array(Image.open(flake.flake_image))
 
     R, G, B = cv.split(flake_image)
 
-    gamma_R = np.mean(R) / 25
-    gamma_G = np.mean(G) / 16 # Don't question the magic number.
-    gamma_B = np.mean(B) / 13
+    adj_images = []
 
-    LUT_R = np.empty((1, 256), np.uint8)
-    LUT_G = np.empty((1, 256), np.uint8)
-    LUT_B = np.empty((1, 256), np.uint8)
-    for i in range(256):
-        LUT_R[0, i] = np.clip(pow(i / 255.0, gamma_R) * 255.0, 0, 255)
-        LUT_G[0, i] = np.clip(pow(i / 255.0, gamma_G) * 255.0, 0, 255)
-        LUT_B[0, i] = np.clip(pow(i / 255.0, gamma_B) * 255.0, 0, 255)
+    for LUT in lookup_tables:
+        R_LUT = cv.LUT(R, LUT[1])
+        G_LUT = cv.LUT(G, LUT[2])
+        B_LUT = cv.LUT(B, LUT[3])
 
-    gamma_corrected = Image.fromarray(cv.cvtColor(cv.merge((cv.LUT(R, LUT_R), cv.LUT(G, LUT_G), cv.LUT(B, LUT_B))), cv.COLOR_RGB2GRAY))
-    gamma_corrected = ImageEnhance.Contrast(gamma_corrected).enhance(1.2)
+        adj_images.append(cv.merge([R_LUT, G_LUT, B_LUT]))
+
+    comb_image = np.hstack(adj_images)
+    ret_image = Image.fromarray((255*comb_image).astype(np.uint8))
     response = HttpResponse(content_type = "image/jpg")
 
-    gamma_corrected.save(response, "JPEG")
-    return response
+    ret_image.save(response, "JPEG")
+    return response 
 
 class FlakeDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.DetailView):
     template_name = 'flake_app/flake-detail.html'
@@ -120,7 +130,7 @@ class FlakeDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.Detai
                 return redirect(reverse('flake_app:flake-detail', args = (pk,)))
 
 # TODO: Move this from a restframework view to an ordinary form. 
-class FlakeEdit(APIView):
+class FlakeEdit(LoginRequiredMixin, APIView):
     renderer_classes = [TemplateHTMLRenderer]
     parser_classes = [MultiPartParser]
     template_name = 'flake_app/flake-edit.html'
@@ -191,17 +201,44 @@ class DeviceIndex(LoginRequiredMixin, generic.ListView):
 
     model = Device
 
-class DeviceDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.DetailView):
+class DeviceDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.DetailView, generic.edit.FormMixin):
     template_name = 'flake_app/device-detail.html'
     context_object_name = 'device'
     queryset = Device.objects.all()
 
     model = Device
 
-    def post(self, request, pk, *args, **kwargs):
-        if 'remove-flake' in request.POST:
+    form_class = CommentForm
 
-            device_instance = Device.objects.get(pk = pk)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        device = self.get_object()
+
+        parent_comments = Comment.objects.filter(device = device, parent_comment = None)
+
+        def get_children(comment, curr_indent):
+            all_comments = {}
+            all_comments[comment] = curr_indent
+
+            curr_indent += 40
+            for reply in comment.replies.all():
+                all_comments.update(get_children(reply, curr_indent))
+
+            return all_comments
+        
+        comments_context = {}
+        for parent in parent_comments:
+            comments_context.update(get_children(parent, 0))
+
+        context['sorted_comments'] = comments_context
+
+        return context
+
+    def post(self, request, pk, *args, **kwargs):
+        device_instance = Device.objects.get(pk = pk)
+
+        if 'remove-flake' in request.POST:
             if request.user.has_perm(Device.get_perm("change"), device_instance):
                 removed = Flake.objects.get(pk = request.POST['remove-flake'])
                 # TODO: Verify that the flake is actually part of the device.
@@ -209,10 +246,21 @@ class DeviceDetail(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.Deta
             else:
                 messages.warning(request, "You must be the owner of the device to remove the flake.")
         elif 'set-current' in request.POST:
-            device_instance = Device.objects.get(pk = pk)
             request.user.current_device = device_instance
             request.user.save()
-            
+        elif 'post-comment' in request.POST:
+            comment_form = CommentForm(data = request.POST)
+            if comment_form.is_valid():
+                body = comment_form.cleaned_data['body']
+
+                if 'parent_comment' in comment_form.cleaned_data:
+                    parent_comment = comment_form.cleaned_data['parent_comment']
+                else:
+                    parent_comment = None
+
+                new_comment = Comment(body = body, parent_comment = parent_comment, device = self.get_object(), user = self.request.user)
+                new_comment.save()
+
         return redirect(reverse('flake_app:device-detail', args = (pk,)))
 
 class DeviceEdit(LoginRequiredMixin, AutoPermissionRequiredMixin, generic.UpdateView):

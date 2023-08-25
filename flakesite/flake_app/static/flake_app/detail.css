@@ -2,6 +2,45 @@
     display: none;
 }
 
+.comment {
+    border-left: thin solid darkslategray;
+}
+
+.comment_form{
+    display: none;
+}
+
+.comment_form textarea{
+    width: 100%;
+    max-width: 100%;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.comment_form input{
+    background-color: rgb(233, 233, 233);
+    text-align: left;
+    font-family: sans-serif;
+    font-size: 14px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 15px;
+    vertical-align: top;
+    min-width: 100px;
+}
+.comment_form button{
+    background-color: rgb(233, 233, 233);
+    text-align: left;
+    font-family: sans-serif;
+    font-size: 14px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 15px;
+    vertical-align: top;
+    min-width: 100px;
+}
 
 .tab {
     display: inline-table;
@@ -11,6 +50,21 @@
     list-style-type: none;
     margin: 0;
     padding: 0;
+}
+
+.tabtext{
+    background-color: lightseagreen;
+    color:white;
+    text-align: left;
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    padding: 12px 15px;
+    vertical-align: top;
+    min-width: 300px;
+    display: inline-table;
 }
 
 table {
@@ -62,6 +116,10 @@ tbody tr{
     text-align: center;
     font-family: sans-serif;
     color: black;
+}
+
+.header {
+    font-family: sans-serif;
 }
 
 .headerlink a{

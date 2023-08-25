@@ -2,6 +2,8 @@ import base64
 from django.conf import settings
 from django.forms.fields import ImageField as ImageFormField
 from django.forms.fields import FileField as FileFormField
+from django.core.files.storage import default_storage
+
 from rest_framework import serializers
 from rest_polymorphic.serializers import PolymorphicSerializer
 from rest_framework.fields import CurrentUserDefault
@@ -88,11 +90,16 @@ class FlakeSerializer(serializers.HyperlinkedModelSerializer):
     trained_image = AllowEmptyImageField(required = False, allow_empty_file = True, use_url = False)
     map_image = AllowEmptyImageField(required = False, allow_empty_file = True, use_url = False)
 
+    # Optionally let the uploading user point at different Dropbox URL we have access to.
+    over_flake_loc = serializers.CharField(max_length = 500, required = False, validators = [validate_path_exists])
+    over_trained_loc = serializers.CharField(max_length = 500, required = False, validators = [validate_path_exists])
+    over_map_loc = serializers.CharField(max_length = 500, required = False, validators = [validate_path_exists])
+
     device = serializers.HyperlinkedRelatedField(view_name = 'flake_app:device-detail', queryset = Device.objects.all(), allow_null = True, required = False)
 
     class Meta:
         model = Flake
-        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image']
+        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image', 'flake_url', 'trained_url', 'map_url', 'map_path', 'flake_path', 'trained_path']
         validators = [
                 UniqueTogetherOrOwnerValidator(
                     queryset = Flake.objects.all(),
@@ -107,13 +114,28 @@ class FlakeSerializer(serializers.HyperlinkedModelSerializer):
 
         flake, create = ModelClass.objects.update_or_create(box = validated_data.get('box'), chip = validated_data.get('chip'), num = validated_data.get('num'),
                                                           defaults = validated_data)
-
         return flake
+    
+    def validate_map_path(self, value):
+        if value and not default_storage.exists(value):
+            raise serializers.ValidationError('The path provided does not exist.')
+        return value
+
+    def validate_flake_path(self, value):
+        if value and not default_storage.exists(value):
+            raise serializers.ValidationError('The path provided does not exist.')
+        return value
+
+    def validate_trained_path(self, value):
+        if value and not default_storage.exists(value):
+            raise serializers.ValidationError('The path provided does not exist.')
+        return value
 
 class GrapheneSerializer(FlakeSerializer):
+    
     class Meta:
         model = Graphene
-        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image', 'monolayers', 'bilayers', 'gates', 'noise']
+        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image', 'monolayers', 'bilayers', 'gates', 'noise', 'map_path', 'flake_path', 'trained_path']
         validators = [
                 UniqueTogetherOrOwnerValidator(
                     queryset = Flake.objects.all(),
@@ -122,13 +144,13 @@ class GrapheneSerializer(FlakeSerializer):
         ]
         
         extra_kwargs = {
-            'url': {'view_name': 'flake_app:flake-detail', 'lookup_field': 'pk'},
+            'url': {'view_name': 'flake_app:flake-detail', 'lookup_field': 'pk'}
         }
 
 class hBNSerializer(FlakeSerializer):
     class Meta:
         model = hBN
-        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image', 'thin', 'thick', 'capsule', 'noise']
+        fields = ['box', 'chip', 'num', 'name', 'x_pos', 'y_pos', 'owner', 'contour', 'device', 'map_image', 'flake_image', 'trained_image', 'thin', 'thick', 'capsule', 'noise', 'map_path', 'flake_path', 'trained_path']
         validators = [
                 UniqueTogetherOrOwnerValidator(
                     queryset = Flake.objects.all(),

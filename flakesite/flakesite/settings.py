@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = flake_config.get('SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'flakesite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': flake_config.get('DB_NAME', ''),
-        'USER': flake_config.get('DB_USER', ''),
-        'PASSWORD': flake_config.get('DB_PASSWORD', ''),
-        'HOST': flake_config.get('DB_HOST', ''),
-        'PORT': flake_config.get('DB_PORT', '')
+        'NAME': flake_config.get('DB_NAME', 'django'),
+        'USER': flake_config.get('DB_USER', 'root'),
+        'PASSWORD': flake_config.get('DB_PASSWORD', 'graphene'),
+        'HOST': flake_config.get('DB_HOST', '127.0.0.1'),
+        'PORT': flake_config.get('DB_PORT', '3306')
     }
 }
 
@@ -132,6 +132,10 @@ STATIC_URL = 'static/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+flake_config['DRB_APP_KEY'] = 'aja3fi67x8w1zwh'
+flake_config['DRB_APP_SECRET'] = 'bbovs8knbapfe9u'
+flake_config['DRB_REFRESH_TOKEN'] = 'krHWFP7jdDAAAAAAAAAAAZ_nrtJ-UX51_kDkSW50cSXg5kh6yn-SCs6i3cs1XXZt'
 
 if flake_config.get('DRB_APP_KEY') or flake_config.get('DRB_REFRESH_TOKEN'):
     DEFAULT_FILE_STORAGE = 'flake_app.storage.SharedLinkDropBoxStorage'

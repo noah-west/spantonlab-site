@@ -63,34 +63,41 @@
                 <th>Flake</th>
                 <th>Trained</th>
                 <th>Map</th>
-                {% if flake.has_gamma %}
-                    <th>Gamma corrected</th>
-                {% endif %}
             </tr>
         </thead>
         <tr>
             <div id = "Flake" class = "imagecontent">
                 {% if flake.flake_image %}
-                <td><a href = "{% url 'flake_app:flake-image' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "300" height = "300"></a></td>
+                <td><a href = "{% url 'flake_app:flake-image' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:flake-image' flake.pk %}" width = "400" height = "400"></a></td>
                 {% else %}
                     <td>No image found</td>
                 {% endif %}
             </div>
             <div id = "Trained" class = "imagecontent">
                 {% if flake.trained_image %}
-                    <td><a href = "{{flake.trained_image.url}}", target = '_blank'><img src = "{{flake.trained_image.url}}" width = "300" height = "300"></a></td>
+                    <td><a href = "{{flake.trained_image.url}}", target = '_blank'><img src = "{{flake.trained_image.url}}" width = "400" height = "400"></a></td>
                 {% else %}
-                    <td>No image found</td>
+                    <td width = "400" height = "400">No image found</td>
                 {% endif %}
             </div>
             <div id = "Map" class = "imagecontent">
-                <td><a href = "{% url 'flake_app:map-image' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "300" height = "300"></a></td>
-            {% if flake.has_gamma%}
-            <div id = "Gamma" class = "imagecontent">
-                <td><a href = "{% url 'flake_app:flake-gamma' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:flake-gamma' flake.pk %}" width = "300" height = "300"></a></td>
+                <td><a href = "{% url 'flake_app:map-image' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:map-image' flake.pk %}" width = "400" height = "400"></a></td>
             </div>
-            {% endif %}
         </tr>
     </table>
+    {% if flake.has_LUT %}
+    <table class = "imagetable">
+        <thead>
+            <tr>
+                <th>LUT Adjustment</th>
+            </tr>
+        </thead>
+        <tr>
+            <div id = "LUT" class = "imagecontent">
+                <td><a href = "{% url 'flake_app:flake-lut' flake.pk %}", target = '_blank'><img src = "{% url 'flake_app:flake-lut' flake.pk %}" width = "100%" height = "400"></a></td>
+            </div>
+        </tr>
+    </table>
+    {% endif %}
 {% endblock %}
 </html>

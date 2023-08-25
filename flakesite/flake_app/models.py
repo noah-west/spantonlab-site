@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.core.files.storage import default_storage
 from django.dispatch import receiver
 from django.conf import settings
@@ -19,8 +19,6 @@ class Device(RulesModel):
     name = models.CharField(max_length = 255, unique = True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.SET_NULL, null = True, related_name = 'devices')
 
-    desc = models.TextField(null = True)
-
     class Meta:
         rules_permissions = {
             "view" : rules.is_authenticated,
@@ -35,11 +33,23 @@ class Device(RulesModel):
 
 # Base class for the exfoliated flake models.
 
-def get_flake_file_location(instance, filename):
+def get_base_file_location(instance, filename):
     return '{0}/{1}/{2}'.format(instance.box, instance.chip, filename)
 
+def get_trained_file_location(instance, filename):
+    if instance.trained_path:
+        return instance.trained_path
+    return get_base_file_location(instance, filename)
+
+def get_flake_file_location(instance, filename):
+    if instance.flake_path:
+        return instance.flake_path
+    return get_base_file_location(instance, filename)
+
 def get_default_map_file_location(instance, filename):
-    return get_flake_file_location(instance, 'map.jpeg')
+    if instance.map_path:
+        return instance.map_path
+    return get_base_file_location(instance, 'map.jpeg')
 
 class PolymorphicRulesMetaclass(RulesModelBaseMixin, PolymorphicModelBase):
     pass
@@ -54,24 +64,31 @@ class Flake(RulesModelMixin, PolymorphicModel, metaclass = PolymorphicRulesMetac
                                                 # feature of the flake.
 
     name = models.CharField(max_length = 255, blank = True, null = True)    # Readable name for the flake. By default [box]_[chip]_[num] 
+    
+    # Owner of the flake, who has control over its use. Nominally, whoever scanned it.
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.SET_NULL, null = True, related_name = 'flakes')
 
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.SET_NULL, null = True, related_name = 'flakes') # Owner of the flake, who has control over its use. Nominally, whoever scanned it.
+    map_image     = DropboxImageField(upload_to = get_default_map_file_location, dropbox_url_field = 'map_url', null = True, blank = True)
+    flake_image   = DropboxImageField(upload_to = get_flake_file_location, dropbox_url_field = 'flake_url', null = True, blank = True)
+    trained_image = DropboxImageField(upload_to = get_trained_file_location, dropbox_url_field = 'trained_url', null = True, blank = True)
 
+    # Cached Shared Link URLS for displaying the flake images. See storage.py and fields.py 
     map_url       = models.URLField(blank = True, null = True, max_length = 500)
     flake_url     = models.URLField(blank = True, null = True, max_length = 500)
     trained_url   = models.URLField(blank = True, null = True, max_length = 500)
 
-    map_image     = DropboxImageField(upload_to = get_default_map_file_location, dropbox_url_field = 'map_url', null = True, blank = True)
-    flake_image   = DropboxImageField(upload_to = get_flake_file_location, dropbox_url_field = 'flake_url', null = True, blank = True)
-    trained_image = DropboxImageField(upload_to = get_flake_file_location, dropbox_url_field = 'trained_url', null = True, blank = True)
+    # Overrides for the file locations of the map, flake, and trained images. Currently used so that we don't require the server to have write access to the Dropbox.
+    # These are pushed by the FlakeRun.py file.
+    map_path     = models.CharField(blank = True, null = True, max_length = 500)
+    flake_path   = models.CharField(blank = True, null = True, max_length = 500)
+    trained_path = models.CharField(blank = True, null = True, max_length = 500)
 
     device = models.ForeignKey(Device, on_delete = models.SET_NULL, blank = True, null = True, related_name = 'flakes')
 
     uploaded_at = models.DateTimeField(auto_now_add = True)
 
-    bounds_threshold = (212, 255)
-
-    has_gamma = False
+    # Whether or not to display LUT adjusted images on the Flake Detail page.
+    has_LUT = False
 
     class Meta():
         rules_permissions = {
@@ -93,7 +110,15 @@ class Flake(RulesModelMixin, PolymorphicModel, metaclass = PolymorphicRulesMetac
             default_storage_loc = get_default_map_file_location(self, '')
             if default_storage.exists(default_storage_loc):
                 self.map_image = default_storage_loc
-                
+        
+        # Even sketchier override to manually reset the paths of map_image, flake_image, and trained_image to the overrides
+        if self.map_path:
+            self.map_image.name = self.map_path
+        if self.flake_path:
+            self.flake_image.name = self.flake_path
+        if self.trained_path:
+            self.trained_image.name = self.trained_path         
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -107,7 +132,7 @@ class Flake(RulesModelMixin, PolymorphicModel, metaclass = PolymorphicRulesMetac
     def get_absolute_url(self):
         return reverse('flake_app:flake-detail', kwargs={'pk' : self.pk})
 
-@receiver(pre_delete, sender = Flake, dispatch_uid = 'flake_presave_signal')
+@receiver(pre_delete, sender = Flake, dispatch_uid = 'flake_predelete_signal')
 def set_deleting(sender, instance, using, **kwargs):
     instance.deleting = True
 
@@ -132,18 +157,17 @@ class hBN(Flake):
 
     batch = models.CharField(max_length = 12, null = True, blank = True) # The hBN batch this exfoliation was sourced from
 
-    bounds_threshold = (212, 255)
-    has_gamma = True
+    has_LUT = True
 
     def get_displayed_fields(self):
         displayed = super().get_displayed_fields()
         displayed.update({'Capsule area' : self.capsule, 'Few Layer' : self.thin, 'Thick Layer' : self.thick, 'batch' : self.batch})
         return displayed
 
-# Comment on a particular flake
+# Comment on a particular device
 class Comment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete = models.SET_NULL, null = True)
-    flake = models.ForeignKey(Flake, related_name = 'comments', on_delete = models.CASCADE)
+    device = models.ForeignKey(Device, related_name = 'comments', on_delete = models.CASCADE, null = True)
 
     body = models.TextField()
 
@@ -154,4 +178,7 @@ class Comment(models.Model):
         ordering = ('created',)
     
     def __str__(self):
-        return "Comment by {0} on flake {1}".format(self.user.username, self.flake.name)
+        display_name = "No one"
+        if self.user:
+            display_name = self.user.username
+        return "Comment by {0} on device {1}".format(display_name, self.device.name)
